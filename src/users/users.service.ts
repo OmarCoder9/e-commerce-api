@@ -1,6 +1,7 @@
 import { LoginDto } from './dtos/login.dto';
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -13,6 +14,7 @@ import { JwtService } from '@nestjs/jwt';
 import { JwtPayloadType } from '../utils/types';
 import { ConfigService } from '@nestjs/config';
 import { UpdateUserDto } from './dtos/update-user.dto';
+import { UserRoles } from '../utils/userRoles';
 
 @Injectable()
 export class UsersService {
@@ -96,6 +98,16 @@ export class UsersService {
 
     return this.userRepository.save(user)
   }
+
+  public async deleteUser(id:number, payload: JwtPayloadType){
+    const user = await this.getCurrentUser(id)
+    if(user.id === payload.id || payload.role === UserRoles.ADMIN){
+      await this.userRepository.remove(user)
+      return {message:"User has been deleted"}
+    }
+    throw new ForbiddenException("Access denied, You're not allowed")
+  }
+
 
   /**
    * Generate json web token

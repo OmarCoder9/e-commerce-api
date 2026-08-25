@@ -7,7 +7,10 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
-  Put,
+  Patch,
+  Delete,
+  Param,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
@@ -37,20 +40,34 @@ export class UsersController {
   @Get('current-user')
   @UseGuards(AuthGuard)
   public getCurrentUser(@CurrentUser() payload: JwtPayloadType) {
+    console.log('In Handler');
     return this.usersService.getCurrentUser(payload.id);
   }
 
   @Get()
   @Roles(UserRoles.ADMIN)
   @UseGuards(AuthRolesGuard)
-  public getAllUsers(){
-    return this.usersService.getAllUsers()
+  public getAllUsers() {
+    return this.usersService.getAllUsers();
   }
 
-  @Put()
+  @Patch()
   @Roles(UserRoles.ADMIN, UserRoles.USER)
   @UseGuards(AuthRolesGuard)
-  public updateUser(@CurrentUser() payload: JwtPayloadType, @Body() body:UpdateUserDto){
-    return this.usersService.updateUser(payload.id, body)
+  public updateUser(
+    @CurrentUser() payload: JwtPayloadType,
+    @Body() body: UpdateUserDto,
+  ) {
+    return this.usersService.updateUser(payload.id, body);
+  }
+
+  @Delete(':id')
+  @Roles(UserRoles.ADMIN, UserRoles.USER)
+  @UseGuards(AuthRolesGuard)
+  public deleteUser(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() payload: JwtPayloadType,
+  ) {
+    return this.usersService.deleteUser(id, payload);
   }
 }
