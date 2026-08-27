@@ -1,5 +1,6 @@
 import { LoginDto } from './dtos/login.dto';
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -12,6 +13,8 @@ import { JwtPayloadType } from '../utils/types';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { UserRoles } from '../utils/userRoles';
 import { AuthService } from './auth.service';
+import { join } from 'path';
+import { unlinkSync } from 'fs';
 
 @Injectable()
 export class UsersService {
@@ -65,5 +68,26 @@ export class UsersService {
       return { message: 'User has been deleted' };
     }
     throw new ForbiddenException("Access denied, You're not allowed");
+  }
+
+  public async setProfileImage(userId:number, profileImage:string){
+    const user = await this.getCurrentUser(userId)
+    if(user.profileImage !== "")
+      await this.removeProfileImage(userId)
+
+    user.profileImage = profileImage
+    return this.userRepository.save(user)
+  }
+
+  public async removeProfileImage(userId:number){
+    const user = await this.getCurrentUser(userId)
+    if(user.profileImage === "")
+      throw new BadRequestException("there is no profile image ")
+
+    const imagePath = join(process.cwd(), `./images/users/${user.profileImage}`)
+    unlinkSync(imagePath)
+
+    user.profileImage = ""
+    return this.userRepository.save(user)
   }
 }
