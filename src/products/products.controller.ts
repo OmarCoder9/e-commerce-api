@@ -8,17 +8,25 @@ import {
   Patch,
   Delete,
   ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { CreateProductDto } from './dtos/create-product.dto';
 import { UpdateProductDto } from './dtos/update-product.dto';
+import { Roles } from '../users/decorators/user-role.decorator';
+import { UserRoles } from '../utils/userRoles';
+import { AuthRolesGuard } from '../users/guards/auth-roles.guard';
+import { CurrentUser } from '../users/decorators/current-user.decorator';
+import type { JwtPayloadType } from '../utils/types';
 
 @Controller('/api/products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Post()
-  public createProduct(@Body() body: CreateProductDto) {
-    return this.productsService.createProduct(body);
+  @UseGuards(AuthRolesGuard) 
+  @Roles(UserRoles.ADMIN)
+  public createProduct(@Body() body: CreateProductDto, @CurrentUser() payload:JwtPayloadType) {
+    return this.productsService.createProduct(body, payload.id);
   }
 
   @Get()

@@ -16,6 +16,5 @@ export class LoginDto {
   @IsString()
   @IsNotEmpty()
   @Length(6, 100)
-  @IsStrongPassword()
   password!: string;
 }
