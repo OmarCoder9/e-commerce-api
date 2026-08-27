@@ -44,6 +44,9 @@ export class User {
   })
   updatedAt!: Date;
 
+  @Column({nullable:true, default:null})
+  profileImage!:string
+
   @OneToMany(()=>Product, (product)=>product.user)
   products?: Product[]
 
