@@ -47,8 +47,14 @@ export class ReviewsService {
     };
   }
 
-  public async getAll() {
-    return this.reviewRepository.find({ order: { createdAt: 'DESC' } });
+  public async getAll(page?:number, limit?:number) {
+    page = page ?? 1
+    limit = limit ?? 20
+    const skip = (page - 1) * limit
+    return this.reviewRepository.find({
+      skip,
+      take:limit,
+      order: { createdAt: 'DESC' } });
   }
 
   public async update(

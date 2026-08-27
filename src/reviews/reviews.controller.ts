@@ -8,6 +8,7 @@ import {
   UseGuards,
   Patch,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
 import { CreateReviewDto } from './dtos/create-review.dto';
@@ -36,8 +37,11 @@ export class ReviewsController {
   @Get()
   @UseGuards(AuthRolesGuard)
   @Roles(UserRoles.ADMIN)
-  public getAllReviews() {
-    return this.reviewService.getAll();
+  public getAllReviews(
+    @Query("page") page?: number,
+    @Query("limit") limit?:number
+  ) {
+    return this.reviewService.getAll(page, limit);
   }
 
   @Patch(':id')
