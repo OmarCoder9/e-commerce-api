@@ -9,6 +9,7 @@ import {
   Delete,
   ParseIntPipe,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { CreateProductDto } from './dtos/create-product.dto';
 import { UpdateProductDto } from './dtos/update-product.dto';
@@ -23,15 +24,22 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Post()
-  @UseGuards(AuthRolesGuard) 
+  @UseGuards(AuthRolesGuard)
   @Roles(UserRoles.ADMIN)
-  public createProduct(@Body() body: CreateProductDto, @CurrentUser() payload:JwtPayloadType) {
+  public createProduct(
+    @Body() body: CreateProductDto,
+    @CurrentUser() payload: JwtPayloadType,
+  ) {
     return this.productsService.createProduct(body, payload.id);
   }
 
   @Get()
-  public getAllProducts() {
-    return this.productsService.getAllProducts();
+  public getAllProducts(
+    @Query('title') title?: string,
+    @Query('minPrice') minPrice?: string,
+    @Query('maxPrice') maxPrice?: string,
+  ) {
+    return this.productsService.getAllProducts(title, minPrice, maxPrice);
   }
 
   @Get('/:productID')
@@ -40,6 +48,8 @@ export class ProductsController {
   }
 
   @Patch('/:productID')
+  @UseGuards(AuthRolesGuard)
+  @Roles(UserRoles.ADMIN)
   public updateProduct(
     @Param('productID', ParseIntPipe) productID: number,
     @Body() body: UpdateProductDto,
@@ -48,6 +58,8 @@ export class ProductsController {
   }
 
   @Delete('/:productID')
+  @UseGuards(AuthRolesGuard)
+  @Roles(UserRoles.ADMIN)
   public deleteProduct(@Param('productID', ParseIntPipe) productID: number) {
     return this.productsService.deleteProduct(productID);
   }

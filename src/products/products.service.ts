@@ -1,24 +1,24 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateProductDto } from './dtos/create-product.dto';
 import { UpdateProductDto } from './dtos/update-product.dto';
-import { Repository } from 'typeorm';
+import {
+  Between,
+  FindOptionsWhere,
+  LessThanOrEqual,
+  Like,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 import { Product } from './product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsersService } from '../users/users.service';
 
-export interface IProduct {
-  id: number;
-  title: string;
-  price: number;
-}
-
 @Injectable()
 export class ProductsService {
-  private products: IProduct[] = [
-    { id: 1, title: 'Phone', price: 50000 },
-    { id: 2, title: 'Laptop', price: 25000 },
-    { id: 3, title: 'Tablet', price: 5000 },
-  ];
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
@@ -34,19 +34,46 @@ export class ProductsService {
     return this.productRepository.save(newProduct);
   }
 
-  public async getAllProducts() {
-    return this.productRepository.find({relations:{user:true, reviews:true}});
+  public async getAllProducts(
+    title?: string,
+    minPrice?: string,
+    maxPrice?: string,
+  ) {
+    const where: FindOptionsWhere<Product> = {};
+
+    if (title) {
+      where.title = Like(`%${title.toLowerCase()}%`);
+    }
+
+    const minimum = minPrice === undefined ? undefined : Number(minPrice);
+    const maximum = maxPrice === undefined ? undefined : Number(maxPrice);
+
+    if (minimum !== undefined && Number.isNaN(minimum)) {
+      throw new BadRequestException('minPrice must be a number');
+    }
+    if (maximum !== undefined && Number.isNaN(maximum)) {
+      throw new BadRequestException('maxPrice must be a number');
+    }
+
+    if (minimum !== undefined && maximum !== undefined) {
+      where.price = Between(minimum, maximum);
+    } else if (minimum !== undefined) {
+      where.price = MoreThanOrEqual(minimum);
+    } else if (maximum !== undefined) {
+      where.price = LessThanOrEqual(maximum);
+    }
+
+    return this.productRepository.find({ where });
   }
 
   public async getSingleProduct(productID: number) {
     const product = await this.productRepository.findOne({
       where: { id: productID },
-      relations:{user:true, reviews:true}
     });
     if (!product) {
       throw new NotFoundException();
     }
-    return product
+    return product;
   }
 
   public async updateProduct(
