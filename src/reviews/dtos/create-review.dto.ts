@@ -3,12 +3,12 @@ import { IsNumber, IsString, IsNotEmpty, Min, Length, Max } from 'class-validato
 export class CreateReviewDto {
   @IsNumber()
   @IsNotEmpty()
-  @Min(0)
+  @Min(1)
   @Max(5)
-  rate!: number;
+  rating!: number;
 
   @IsString()
   @IsNotEmpty()
   @Length(4, 100)
-  message!: string;
+  comment!: string;
 }

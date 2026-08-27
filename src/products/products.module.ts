@@ -14,5 +14,6 @@ import { JwtModule } from '@nestjs/jwt';
     UsersModule,
     JwtModule
   ],
+  exports:[ProductsService]
 })
 export class ProductsModule {}

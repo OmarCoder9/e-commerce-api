@@ -24,7 +24,7 @@ export class ProductsService {
     private readonly productRepository: Repository<Product>,
     private readonly userService: UsersService,
   ) {}
-  public async createProduct(dto: CreateProductDto, userId: number) {
+  public async create(dto: CreateProductDto, userId: number) {
     const user = await this.userService.getCurrentUser(userId);
     const newProduct = this.productRepository.create({
       ...dto,
@@ -34,7 +34,7 @@ export class ProductsService {
     return this.productRepository.save(newProduct);
   }
 
-  public async getAllProducts(
+  public async getAll(
     title?: string,
     minPrice?: string,
     maxPrice?: string,
@@ -76,7 +76,7 @@ export class ProductsService {
     return product;
   }
 
-  public async updateProduct(
+  public async update(
     productID: number,
     updateProductDto: UpdateProductDto,
   ) {
@@ -89,7 +89,7 @@ export class ProductsService {
     return { status: 'success', data: { affectedProducts: res.affected } };
   }
 
-  public async deleteProduct(productID: number) {
+  public async delete(productID: number) {
     const res = await this.productRepository.delete({ id: productID });
     if (!res.affected) throw new NotFoundException();
     return { status: 'success', data: { affectedProducts: res.affected } };

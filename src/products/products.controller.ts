@@ -30,7 +30,7 @@ export class ProductsController {
     @Body() body: CreateProductDto,
     @CurrentUser() payload: JwtPayloadType,
   ) {
-    return this.productsService.createProduct(body, payload.id);
+    return this.productsService.create(body, payload.id);
   }
 
   @Get()
@@ -39,7 +39,7 @@ export class ProductsController {
     @Query('minPrice') minPrice?: string,
     @Query('maxPrice') maxPrice?: string,
   ) {
-    return this.productsService.getAllProducts(title, minPrice, maxPrice);
+    return this.productsService.getAll(title, minPrice, maxPrice);
   }
 
   @Get('/:productID')
@@ -54,13 +54,13 @@ export class ProductsController {
     @Param('productID', ParseIntPipe) productID: number,
     @Body() body: UpdateProductDto,
   ) {
-    return this.productsService.updateProduct(productID, body);
+    return this.productsService.update(productID, body);
   }
 
   @Delete('/:productID')
   @UseGuards(AuthRolesGuard)
   @Roles(UserRoles.ADMIN)
   public deleteProduct(@Param('productID', ParseIntPipe) productID: number) {
-    return this.productsService.deleteProduct(productID);
+    return this.productsService.delete(productID);
   }
 }

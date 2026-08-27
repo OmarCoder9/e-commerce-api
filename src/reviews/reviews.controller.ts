@@ -1,18 +1,63 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  ParseIntPipe,
+  UseGuards,
+  Patch,
+  Delete,
+} from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
 import { CreateReviewDto } from './dtos/create-review.dto';
+import { CurrentUser } from '../users/decorators/current-user.decorator';
+import type { JwtPayloadType } from '../utils/types';
+import { AuthRolesGuard } from '../users/guards/auth-roles.guard';
+import { UserRoles } from '../utils/userRoles';
+import { Roles } from '../users/decorators/user-role.decorator';
+import { UpdateReviewDto } from './dtos/update-review.dto';
 
 @Controller('/api/reviews')
 export class ReviewsController {
-  constructor(private readonly reviewService: ReviewsService){}
+  constructor(private readonly reviewService: ReviewsService) {}
 
-  
-  @Post()
-  public createReview(@Body() body: CreateReviewDto) {
-    return this.reviewService.createReview(body)
+  @Post(':productId')
+  @UseGuards(AuthRolesGuard)
+  @Roles(UserRoles.ADMIN, UserRoles.USER)
+  public createReview(
+    @Param('productId', ParseIntPipe) productId: number,
+    @Body() body: CreateReviewDto,
+    @CurrentUser() payload: JwtPayloadType,
+  ) {
+    return this.reviewService.create(productId, payload.id, body);
   }
+
   @Get()
-  public getAllReview() {
-    return this.reviewService.getAllReview();
+  @UseGuards(AuthRolesGuard)
+  @Roles(UserRoles.ADMIN)
+  public getAllReviews() {
+    return this.reviewService.getAll();
+  }
+
+  @Patch(':id')
+  @UseGuards(AuthRolesGuard)
+  @Roles(UserRoles.ADMIN, UserRoles.USER)
+  public updateReview(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() payload: JwtPayloadType,
+    @Body() body: UpdateReviewDto,
+  ) {
+    return this.reviewService.update(id, payload.id, body);
+  }
+
+  @Delete(':id')
+  @UseGuards(AuthRolesGuard)
+  @Roles(UserRoles.ADMIN, UserRoles.USER)
+  public deleteReview(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() payload: JwtPayloadType,
+  ) {
+    return this.reviewService.delete(id, payload);
   }
 }
