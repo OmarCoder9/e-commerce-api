@@ -47,7 +47,6 @@ export class UsersController {
   @Get('current-user')
   @UseGuards(AuthGuard)
   public getCurrentUser(@CurrentUser() payload: JwtPayloadType) {
-    console.log('In Handler');
     return this.usersService.getCurrentUser(payload.id);
   }
 
