@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { RegisterDto } from './dtos/register.dto';
 import { Repository } from 'typeorm';
@@ -8,6 +9,7 @@ import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayloadType } from '../utils/types';
 import { MailService } from '../mail/mail.service';
+import { randomBytes } from 'node:crypto';
 
 @Injectable()
 export class AuthService {
@@ -15,6 +17,7 @@ export class AuthService {
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
+    private readonly config: ConfigService,
   ) {}
 
   /**
@@ -34,15 +37,16 @@ export class AuthService {
       email,
       password: hashedPassword,
       username,
+      verificationToken: randomBytes(32).toString('hex'),
     });
 
     newUser = await this.userRepository.save(newUser);
+    const link = this.generateLink(newUser.id, newUser.verificationToken)
 
-    const accessToken = await this.generateJWT({
-      id: newUser.id,
-      role: newUser.role,
-    });
-    return { accessToken };
+    await this.mailService.sendVerifyEmailTemplate(email, link)
+
+    
+    return { message:"Verification token has been sent to your email, please verify your account" };
   }
 
   /**
@@ -59,12 +63,27 @@ export class AuthService {
     if (!isMatchedPassword)
       throw new BadRequestException('Invalid email or password');
 
+    if(!user.isAccountVerified){
+      let verificationToken = user.verificationToken
+
+      if(!verificationToken){
+        user.verificationToken = randomBytes(32).toString("hex")
+        const res= await this.userRepository.save(user)
+        verificationToken = res.verificationToken
+      }
+
+      const link = this.generateLink(user.id, verificationToken)
+      await this.mailService.sendVerifyEmailTemplate(email, link)
+
+      return { message:"Verification token has been sent to your email, please verify your account adn try to login again" }
+    }
+
     const accessToken = await this.generateJWT({
       id: user.id,
       role: user.role,
     });
 
-    await this.mailService.sendLoginEmail(user.email)
+    await this.mailService.sendLoginEmail(user.email);
 
     return { accessToken };
   }
@@ -86,5 +105,10 @@ export class AuthService {
    */
   private async generateJWT(payload: JwtPayloadType): Promise<string> {
     return this.jwtService.signAsync(payload);
+  }
+
+
+  private generateLink(userId:number, verificationToken:string){
+    return `${this.config.get<string>('DOMAIN')}/api/users/verify-email/${userId}/${verificationToken}`;
   }
 }

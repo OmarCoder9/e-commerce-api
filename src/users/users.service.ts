@@ -88,6 +88,21 @@ export class UsersService {
     unlinkSync(imagePath)
 
     user.profileImage = ""
-    return this.userRepository.save(user)
+    return this.userRepository.save(user) 
+  }
+
+  public async verifyEmail(userId:number, verificationToken:string){
+    const user = await this.getCurrentUser(userId)
+    if(user.verificationToken === null || user.verificationToken === "")
+      throw new NotFoundException("There is no verification token")
+
+    if(user.verificationToken !== verificationToken)
+      throw new BadRequestException("Invalid link")
+
+    user.isAccountVerified = true;
+    user.verificationToken = ""
+
+    await this.userRepository.save(user)
+    return {message: "Your email has bee verified successfully!"}
   }
 }

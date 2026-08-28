@@ -20,4 +20,18 @@ export class MailService {
         console.error('Failed to send login notification email', error);
       });
   }
+  public async sendVerifyEmailTemplate(email: string, link:string) {
+    
+    void this.mailerService 
+      .sendMail({
+        to: email,
+        from: '<no-reply@enodya.com>',
+        subject: 'Verify your account',
+        template: 'verify-email',
+        context: {link} 
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to send login notification email', error);
+      });
+  }
 }
