@@ -15,6 +15,7 @@ import { UserRoles } from '../utils/userRoles';
 import { AuthService } from './auth.service';
 import { join } from 'path';
 import { unlinkSync } from 'fs';
+import { ResetPasswordDto } from './dtos/reset-password.dto';
 
 @Injectable()
 export class UsersService {
@@ -104,5 +105,17 @@ export class UsersService {
 
     await this.userRepository.save(user)
     return {message: "Your email has bee verified successfully!"}
+  }
+
+  public sendResetPassword(email:string){
+    return this.authService.sendResetPasswordLink(email)
+  }
+
+  public getResetPassword(userId:number, resetPasswordToken:string){
+    return this.authService.getRsestPasswordLink(userId, resetPasswordToken)
+  }
+
+  public resetPassword(dto:ResetPasswordDto){
+    this.authService.resetPassword(dto)
   }
 }

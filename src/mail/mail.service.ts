@@ -34,4 +34,18 @@ export class MailService {
         console.error('Failed to send login notification email', error);
       });
   }
+  public async sendResetPasswordTemplate(email: string, resetPasswordLink:string) {
+    
+    void this.mailerService 
+      .sendMail({
+        to: email,
+        from: '<no-reply@enodya.com>',
+        subject: 'Reset Password',
+        template: 'reset-password',
+        context: {resetPasswordLink} 
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to send login notification email', error);
+      });
+  }
 }

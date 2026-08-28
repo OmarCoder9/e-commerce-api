@@ -29,6 +29,8 @@ import { UpdateUserDto } from './dtos/update-user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import type { Express, Response } from 'express';
+import { ForgotPasswordDto } from './dtos/forgot-password.dto';
+import { ResetPasswordDto } from './dtos/reset-password.dto';
 
 @Controller('/api/users')
 export class UsersController {
@@ -105,6 +107,25 @@ export class UsersController {
     @Param('userId', ParseIntPipe) userId: number,
     @Param('verificationToken') verificationToken: string,
   ) {
-    return this.usersService.verifyEmail(userId, verificationToken)
+    return this.usersService.verifyEmail(userId, verificationToken);
+  }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  public forgetPassword(@Body() body: ForgotPasswordDto) {
+    return this.usersService.sendResetPassword(body.email);
+  }
+
+  @Get('reset-password/:id/:resetPasswordToken')
+  public getResetPassword(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('resetPasswordToken') resetPasswordToken: string,
+  ) {
+     return this.usersService.getResetPassword(id, resetPasswordToken)
+  }
+
+  @Post("reset-password")
+  public resetPassword(@Body() body: ResetPasswordDto){
+    return this.usersService.resetPassword(body)
   }
 }
