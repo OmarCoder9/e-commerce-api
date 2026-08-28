@@ -34,11 +34,7 @@ export class ProductsService {
     return this.productRepository.save(newProduct);
   }
 
-  public async getAll(
-    title?: string,
-    minPrice?: string,
-    maxPrice?: string,
-  ) {
+  public async getAll(title?: string, minPrice?: string, maxPrice?: string) {
     const where: FindOptionsWhere<Product> = {};
 
     if (title) {
@@ -71,27 +67,24 @@ export class ProductsService {
       where: { id: productID },
     });
     if (!product) {
-      throw new NotFoundException();
+      throw new NotFoundException('Product Not Found');
     }
     return product;
   }
 
-  public async update(
-    productID: number,
-    updateProductDto: UpdateProductDto,
-  ) {
-    const res = await this.productRepository.update(
-      { id: productID },
-      updateProductDto,
-    );
-    if (!res.affected) throw new NotFoundException();
+  public async update(productID: number, updateProductDto: UpdateProductDto) {
+    const product = await this.getSingleProduct(productID);
 
-    return { status: 'success', data: { affectedProducts: res.affected } };
+    product.title = updateProductDto.title ?? product.title;
+    product.description = updateProductDto.description ?? product.description;
+    product.price = updateProductDto.price ?? product.price;
+
+    return this.productRepository.save(product);
   }
 
   public async delete(productID: number) {
-    const res = await this.productRepository.delete({ id: productID });
-    if (!res.affected) throw new NotFoundException();
-    return { status: 'success', data: { affectedProducts: res.affected } };
+    const product = await this.getSingleProduct(productID);
+    await this.productRepository.remove(product);
+    return { message: 'product deleted successfully' };
   }
 }
