@@ -27,10 +27,10 @@ import { UserRoles } from '../utils/userRoles';
 import { AuthRolesGuard } from './guards/auth-roles.guard';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
 import type { Express, Response } from 'express';
 import { ForgotPasswordDto } from './dtos/forgot-password.dto';
 import { ResetPasswordDto } from './dtos/reset-password.dto';
+import { ApiSecurity } from '@nestjs/swagger';
 
 @Controller('/api/users')
 export class UsersController {
@@ -48,6 +48,7 @@ export class UsersController {
 
   @Get('current-user')
   @UseGuards(AuthGuard)
+  @ApiSecurity("bearer")
   public getCurrentUser(@CurrentUser() payload: JwtPayloadType) {
     return this.usersService.getCurrentUser(payload.id);
   }
@@ -55,6 +56,7 @@ export class UsersController {
   @Get()
   @Roles(UserRoles.ADMIN)
   @UseGuards(AuthRolesGuard)
+  @ApiSecurity("bearer")
   public getAllUsers() {
     return this.usersService.getAllUsers();
   }
@@ -62,6 +64,7 @@ export class UsersController {
   @Patch()
   @Roles(UserRoles.ADMIN, UserRoles.USER)
   @UseGuards(AuthRolesGuard)
+  @ApiSecurity("bearer")
   public updateUser(
     @CurrentUser() payload: JwtPayloadType,
     @Body() body: UpdateUserDto,
@@ -72,6 +75,7 @@ export class UsersController {
   @Delete(':id')
   @Roles(UserRoles.ADMIN, UserRoles.USER)
   @UseGuards(AuthRolesGuard)
+  @ApiSecurity("bearer")
   public deleteUser(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() payload: JwtPayloadType,
@@ -81,6 +85,7 @@ export class UsersController {
 
   @Post('upload-image')
   @UseGuards(AuthGuard)
+  @ApiSecurity("bearer")
   @UseInterceptors(FileInterceptor('user-image'))
   public uploadProfileImage(
     @UploadedFile() file: Express.Multer.File,
@@ -92,12 +97,14 @@ export class UsersController {
 
   @Delete('images/remove-profile-image')
   @UseGuards(AuthGuard)
+  @ApiSecurity("bearer")
   public deleteProfileImage(@CurrentUser() payload: JwtPayloadType) {
     return this.usersService.removeProfileImage(payload.id);
   }
 
   @Get('images/:image')
   @UseGuards(AuthGuard)
+  @ApiSecurity("bearer")
   public getProfileImage(@Param('image') image: string, @Res() res: Response) {
     return res.sendFile(image, { root: 'images/users' });
   }
