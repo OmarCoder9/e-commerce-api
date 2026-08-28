@@ -5,21 +5,16 @@ import { User } from '../users/user.entity';
 @Injectable()
 export class MailService {
   constructor(private readonly mailerService: MailerService) {}
-  public async sendLoginEmail(user: User) {
+  public async sendLoginEmail(email: string) {
     const today = new Date();
-    void this.mailerService
+    
+    void this.mailerService 
       .sendMail({
-        to: user.email,
+        to: email,
         from: '<no-reply@enodya.com>',
         subject: 'Login notification',
-        html: `
-                  <div>
-                    <h2>Hi ${user.username}</h2>
-                    <p>
-                      You logged in to your account on ${today.toDateString()} at ${today.toLocaleTimeString()}.
-                    </p>
-                  </div>
-                `,
+        template: 'login',
+        context: {email, today} 
       })
       .catch((error: unknown) => {
         console.error('Failed to send login notification email', error);

@@ -64,7 +64,7 @@ export class AuthService {
       role: user.role,
     });
 
-    await this.mailService.sendLoginEmail(user)
+    await this.mailService.sendLoginEmail(user.email)
 
     return { accessToken };
   }
